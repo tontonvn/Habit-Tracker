@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Habit Tracker</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent-color: #6c5ce7; /* チェック時の色（ラベンダーパープル） */
+            --border-color: #f0f0f0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 40px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            color: #555;
+        }
+
+        .habit-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .habit-input {
+            border: none;
+            border-bottom: 1px solid transparent;
+            padding: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+            color: var(--text-color);
+        }
+
+        .habit-input:focus {
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .day-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #ccc;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+
+        .day-btn:hover {
+            border-color: var(--accent-color);
+        }
+
+        .day-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #ff7675;
+            color: #ff7675;
+            padding: 10px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: var(--transition);
+        }
+
+        .reset-btn:hover {
+            background: #ff7675;
+            color: white;
+        }
+
+        /* レスポンシブ対応：スマホでは横並びを崩さないよう最小幅を確保 */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .habit-row { grid-template-columns: 1.5fr repeat(7, 1fr); gap: 5px; }
+            .day-btn { border-radius: 8px; font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HABIT TRACKER</h1>
+
+    <div class="habit-header habit-row">
+        <div></div>
+        <div class="day-label">M</div>
+        <div class="day-label">T</div>
+        <div class="day-label">W</div>
+        <div class="day-label">T</div>
+        <div class="day-label">F</div>
+        <div class="day-label">S</div>
+        <div class="day-label">S</div>
+    </div>
+
+    <div id="habit-list">
+        <script>
+            for (let i = 1; i <= 5; i++) {
+                document.write(`
+                    <div class="habit-row">
+                        <input type="text" class="habit-input" placeholder="習慣 ${i} を入力..." id="input-${i}">
+                        <button class="day-btn" onclick="toggleActive(this)">月</button>
+                        <button class="day-btn" onclick="toggleActive(this)">火</button>
+                        <button class="day-btn" onclick="toggleActive(this)">水</button>
+                        <button class="day-btn" onclick="toggleActive(this)">木</button>
+                        <button class="day-btn" onclick="toggleActive(this)">金</button>
+                        <button class="day-btn" onclick="toggleActive(this)">土</button>
+                        <button class="day-btn" onclick="toggleActive(this)">日</button>
+                    </div>
+                `);
+            }
+        </script>
+    </div>
+
+    <div class="controls">
+        <button class="reset-btn" onclick="resetAll()">RESET ALL</button>
+    </div>
+</div>
+
+<script>
+    // 曜日のボタンをオン・オフ切り替える
+    function toggleActive(btn) {
+        btn.classList.toggle('active');
+    }
+
+    // 全てをリセットする
+    function resetAll() {
+        if (confirm('項目とチェックをすべてリセットしますか？')) {
+            // 入力欄のクリア
+            const inputs = document.querySelectorAll('.habit-input');
+            inputs.forEach(input => input.value = '');
+
+            // ボタンのチェック解除
+            const buttons = document.querySelectorAll('.day-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+        }
+    }
+</script>
+
+</body>
+</html>
