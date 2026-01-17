@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Habit Tracker for Notion</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent-color: #6c5ce7;
+            --border-color: #f0f0f0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+            --reset-color: #ff7675;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 700px;
+            padding: 30px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .habit-row {
+            display: grid;
+            grid-template-columns: 2.5fr repeat(7, 1fr);
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .habit-input {
+            border: none;
+            border-bottom: 1px solid transparent;
+            padding: 8px 4px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+            background: transparent;
+            width: 90%;
+        }
+
+        .habit-input:focus {
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #bbb;
+        }
+
+        .day-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #ddd;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .day-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 3px 8px rgba(108, 92, 231, 0.3);
+        }
+
+        .controls {
+            margin-top: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 長押しリセットボタンのデザイン */
+        .reset-wrapper {
+            position: relative;
+            width: 180px;
+            height: 40px;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid var(--reset-color);
+        }
+
+        .reset-btn {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--reset-color);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s;
+        }
+
+        .reset-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--reset-color);
+            z-index: 1;
+            transition: width 0.1s linear;
+        }
+
+        .reset-hint {
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+
+        @media (max-width: 500px) {
+            .container { padding: 15px; }
+            .habit-row { gap: 4px; }
+            .day-btn { border-radius: 6px; font-size: 0.6rem; }
+            .habit-input { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HABIT TRACKER</h1>
+
+    <div class="habit-header habit-row">
+        <div></div>
+        <div class="day-label">MON</div>
+        <div class="day-label">TUE</div>
+        <div class="day-label">WED</div>
+        <div class="day-label">THU</div>
+        <div class="day-label">FRI</div>
+        <div class="day-label">SAT</div>
+        <div class="day-label">SUN</div>
+    </div>
+
+    <div id="habit-list">
+        <script>
+            const days = ['月', '火', '水', '木', '金', '土', '日'];
+            for (let i = 1; i <= 5; i++) {
+                let row = `<div class="habit-row">
+                    <input type="text" class="habit-input" placeholder="Habit ${i}..." id="input-${i}">`;
+                days.forEach(day => {
+                    row += `<button class="day-btn" onclick="toggleActive(this)">${day}</button>`;
+                });
+                row += `</div>`;
+                document.write(row);
+            }
+        </script>
+    </div>
+
+    <div class="controls">
+        <div class="reset-wrapper" id="reset-wrapper">
+            <div class="reset-progress" id="reset-progress"></div>
+            <button class="reset-btn" id="reset-btn">HOLD TO RESET</button>
+        </div>
+        <div class="reset-hint">ボタンを長押しでリセット</div>
+    </div>
+</div>
+
+<script>
+    // 曜日のボタン切り替え
+    function toggleActive(btn) {
+        btn.classList.toggle('active');
+    }
+
+    // 長押しリセットのロジック
+    const resetBtn = document.getElementById('reset-btn');
+    const resetProgress = document.getElementById('reset-progress');
+    let timer;
+    let progress = 0;
+    const holdTime = 1000; // 1秒間
+
+    function startTimer(e) {
+        e.preventDefault();
+        progress = 0;
+        timer = setInterval(() => {
+            progress += 10;
+            resetProgress.style.width = (progress / (holdTime / 10)) * 100 + '%';
+            if (progress >= (holdTime / 10)) {
+                completeReset();
+            }
+        }, 10);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+        progress = 0;
+        resetProgress.style.width = '0%';
+    }
+
+    function completeReset() {
+        clearInterval(timer);
+        resetProgress.style.width = '0%';
+        
+        // 全クリア実行
+        const inputs = document.querySelectorAll('.habit-input');
+        inputs.forEach(input => input.value = '');
+
+        const buttons = document.querySelectorAll('.day-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        // 完了フィードバック
+        resetBtn.textContent = 'RESET DONE!';
+        setTimeout(() => {
+            resetBtn.textContent = 'HOLD TO RESET';
+        }, 2000);
+    }
+
+    // マウスとタッチ両方のイベントに対応
+    resetBtn.addEventListener('mousedown', startTimer);
+    resetBtn.addEventListener('mouseup', stopTimer);
+    resetBtn.addEventListener('mouseleave', stopTimer);
+    resetBtn.addEventListener('touchstart', startTimer);
+    resetBtn.addEventListener('touchend', stopTimer);
+
+</script>
+
+</body>
+</html>
