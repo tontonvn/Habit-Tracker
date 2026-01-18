@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker (Persistence)</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent-color: #6c5ce7;
+            --border-color: #f0f0f0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+            --reset-color: #ff7675;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 700px;
+            padding: 30px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .habit-row {
+            display: grid;
+            grid-template-columns: 2.5fr repeat(7, 1fr);
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .habit-input {
+            border: none;
+            border-bottom: 1px solid transparent;
+            padding: 8px 4px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+            background: transparent;
+            width: 90%;
+        }
+
+        .habit-input:focus {
+            border-bottom: 1px solid var(--accent-color);
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #bbb;
+        }
+
+        .day-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #ddd;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .day-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 3px 8px rgba(108, 92, 231, 0.3);
+        }
+
+        .controls {
+            margin-top: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reset-wrapper {
+            position: relative;
+            width: 180px;
+            height: 40px;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid var(--reset-color);
+        }
+
+        .reset-btn {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--reset-color);
+            font-size: 0.8rem;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        .reset-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background-color: var(--reset-color);
+            z-index: 1;
+            transition: width 0.1s linear;
+        }
+
+        .reset-hint { font-size: 0.65rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HABIT TRACKER</h1>
+    <div class="habit-header habit-row">
+        <div></div>
+        <div class="day-label">MON</div>
+        <div class="day-label">TUE</div>
+        <div class="day-label">WED</div>
+        <div class="day-label">THU</div>
+        <div class="day-label">FRI</div>
+        <div class="day-label">SAT</div>
+        <div class="day-label">SUN</div>
+    </div>
+
+    <div id="habit-list">
+        </div>
+
+    <div class="controls">
+        <div class="reset-wrapper">
+            <div class="reset-progress" id="reset-progress"></div>
+            <button class="reset-btn" id="reset-btn">HOLD TO RESET</button>
+        </div>
+        <div class="reset-hint">長押しでデータをすべて削除</div>
+    </div>
+</div>
+
+<script>
+    const habitList = document.getElementById('habit-list');
+    const days = ['月', '火', '水', '木', '金', '土', '日'];
+
+    // 1. 5行の入力欄を生成
+    for (let i = 0; i < 5; i++) {
+        const row = document.createElement('div');
+        row.className = 'habit-row';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'habit-input';
+        input.placeholder = `Habit ${i + 1}...`;
+        input.dataset.index = i;
+        input.addEventListener('input', saveToStorage);
+        row.appendChild(input);
+
+        days.forEach((day, dayIdx) => {
+            const btn = document.createElement('button');
+            btn.className = 'day-btn';
+            btn.textContent = day;
+            btn.dataset.row = i;
+            btn.dataset.day = dayIdx;
+            btn.onclick = () => {
+                btn.classList.toggle('active');
+                saveToStorage();
+            };
+            row.appendChild(btn);
+        });
+        habitList.appendChild(row);
+    }
+
+    // 2. 保存機能
+    function saveToStorage() {
+        const data = {
+            inputs: Array.from(document.querySelectorAll('.habit-input')).map(input => input.value),
+            checks: Array.from(document.querySelectorAll('.day-btn')).map(btn => btn.classList.contains('active'))
+        };
+        localStorage.setItem('notion_habit_data', JSON.stringify(data));
+    }
+
+    // 3. 復元機能
+    function loadFromStorage() {
+        const saved = localStorage.getItem('notion_habit_data');
+        if (!saved) return;
+        const data = JSON.parse(saved);
+
+        const inputs = document.querySelectorAll('.habit-input');
+        data.inputs.forEach((val, idx) => { if (inputs[idx]) inputs[idx].value = val; });
+
+        const buttons = document.querySelectorAll('.day-btn');
+        data.checks.forEach((isActive, idx) => {
+            if (buttons[idx] && isActive) buttons[idx].classList.add('active');
+        });
+    }
+
+    // 4. リセット機能（長押し）
+    const resetBtn = document.getElementById('reset-btn');
+    const resetProgress = document.getElementById('reset-progress');
+    let timer, progress = 0;
+
+    function startTimer(e) {
+        e.preventDefault();
+        progress = 0;
+        timer = setInterval(() => {
+            progress += 5;
+            resetProgress.style.width = progress + '%';
+            if (progress >= 100) {
+                localStorage.removeItem('notion_habit_data');
+                location.reload(); 
+            }
+        }, 50);
+    }
+    function stopTimer() { clearInterval(timer); resetProgress.style.width = '0%'; }
+
+    resetBtn.addEventListener('mousedown', startTimer);
+    resetBtn.addEventListener('mouseup', stopTimer);
+    resetBtn.addEventListener('mouseleave', stopTimer);
+    resetBtn.addEventListener('touchstart', startTimer);
+    resetBtn.addEventListener('touchend', stopTimer);
+
+    // 起動時に読み込み
+    window.onload = loadFromStorage;
+</script>
+
+</body>
+</html>
